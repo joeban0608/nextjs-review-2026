@@ -1,11 +1,6 @@
-import {
-  addTodo,
-  deleteTodo,
-  getTodoList,
-  toggleTodo,
-  updateTodo,
-} from "@/app/lib/action";
+import { addTodo, getTodoList, toggleTodo, updateTodo } from "@/app/lib/action";
 import Link from "next/link"; // 建議換成 Link 避免全頁刷新
+import ConfirmDeleteModal from "@/app/component/ConfirmDeleteModal";
 
 export default async function Home({
   searchParams,
@@ -78,14 +73,7 @@ export default async function Home({
               </div>
 
               {/* 刪除按鈕 */}
-              <form action={deleteTodo.bind(null, todo.id)}>
-                <button
-                  type="submit"
-                  className="text-red-400 hover:text-red-600 text-xs border border-red-100 px-2 py-1 rounded cursor-pointer"
-                >
-                  Delete
-                </button>
-              </form>
+              <ConfirmDeleteModal id={todo.id} title={todo.title} />
             </div>
 
             {/* 2. Edit 功能：使用 <details> 製作簡易編輯區 */}
