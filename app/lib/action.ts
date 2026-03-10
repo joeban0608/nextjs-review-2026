@@ -1,11 +1,11 @@
 "use server";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import z from "zod";
 import { desc } from "drizzle-orm"; // 記得匯入 desc
-import { redirect } from 'next/navigation'
+import { redirect } from "next/navigation";
 
 export async function addTodo(formData: FormData) {
   const title = formData.get("title");
@@ -45,7 +45,7 @@ export async function addTodo(formData: FormData) {
   console.log("todo", todo);
 }
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 3;
 
 export async function getTodoList(page: number) {
   const offset = (page - 1) * PAGE_SIZE;
@@ -70,4 +70,16 @@ export async function getTodoList(page: number) {
     todos: todoList,
     hasNextPage,
   };
+}
+
+export async function deleteTodo(id: number) {
+  try {
+    await db.delete(schema.todos).where(eq(schema.todos.id, id));
+    
+    // 刪除後刷新頁面數據
+    revalidatePath("/");
+  } catch (error) {
+    console.error("Delete Error:", error);
+    throw new Error("Failed to delete todo");
+  }
 }
