@@ -1,15 +1,11 @@
-import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core"
+import { pgTable, serial, text, timestamp, boolean } from "drizzle-orm/pg-core";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  email: text("email").notNull().unique(),
-  name: text("name"),
-})
-
-export const posts = pgTable("posts", {
+export const todos = pgTable("todos", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
-  content: text("content"),
-  authorId: text("author_id").notNull(),
-  createdAt: timestamp("created_at").defaultNow()
-})
+  description: text("description"),
+  completed: boolean("completed").default(false).notNull(),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
