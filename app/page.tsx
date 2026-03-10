@@ -48,9 +48,24 @@ export default async function Home({
                 <form action={toggleTodo.bind(null, todo.id, !!todo.completed)}>
                   <button
                     type="submit"
-                    className="text-xl hover:scale-110 transition cursor-pointer"
+                    className={`
+      flex items-center justify-center w-10 h-10 rounded-full transition-all cursor-pointer
+      ${
+        todo.completed
+          ? "bg-green-100 hover:bg-green-200 border-green-200"
+          : "bg-red-50 hover:bg-red-100 border-red-200"
+      }
+      border shadow-sm hover:scale-110 active:scale-95
+    `}
+                    title={
+                      todo.completed
+                        ? "Mark as uncompleted"
+                        : "Mark as completed"
+                    }
                   >
-                    {todo.completed ? "✅" : "📌"}
+                    <span className="text-xl">
+                      {todo.completed ? "✅" : "📌"}
+                    </span>
                   </button>
                 </form>
 
@@ -66,7 +81,7 @@ export default async function Home({
               <form action={deleteTodo.bind(null, todo.id)}>
                 <button
                   type="submit"
-                  className="text-red-400 hover:text-red-600 text-xs border border-red-100 px-2 py-1 rounded"
+                  className="text-red-400 hover:text-red-600 text-xs border border-red-100 px-2 py-1 rounded cursor-pointer"
                 >
                   Delete
                 </button>
