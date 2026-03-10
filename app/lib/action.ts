@@ -8,74 +8,77 @@ import { desc } from "drizzle-orm"; // 記得匯入 desc
 import { redirect } from "next/navigation";
 
 export async function addTodo(formData: FormData) {
+  // 1. 驗證數據 (保持不變)
   const title = formData.get("title");
   const description = formData.get("description");
-
-  const originFormData = {
-    title,
-    description,
-  };
-  console.log(`origin form data: ${JSON.stringify(originFormData)}`);
-
+  
   const todoZodSchema = z.object({
-    title: z.string(),
+    title: z.string().min(1, "標題必填"),
     description: z.string().optional(),
   });
 
-  const parseResult = todoZodSchema.safeParse({
-    title,
-    description,
-  });
+  const parseResult = todoZodSchema.safeParse({ title, description });
 
   if (!parseResult.success) {
-    console.error(`Error: ${JSON.stringify(parseResult.error, null, 2)}`);
-    throw new Error("Insert todo params valid error");
+    console.error('格式不正確')
+    throw new Error('create todo data incorrect')
+    // return { error: "格式不正確" }; // 返回錯誤對象而不是拋出，讓前端好處理
   }
-  console.log(`parseResult: ${JSON.stringify(parseResult.data)}`);
 
-  const todo = await db.insert(schema.todos).values({
-    title: parseResult.data.title,
-    description: parseResult.data.description,
-    completed: false,
-  });
+  try {
+    // 2. 資料庫操作
+    await db.insert(schema.todos).values({
+      title: parseResult.data.title,
+      description: parseResult.data.description,
+      completed: false,
+    });
 
-  // 告訴 Next.js 重新驗證首頁路徑，這樣列表才會更新
-  revalidatePath("/");
+    // 3. 更新快取
+    revalidatePath("/");
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error('資料庫寫入失敗，請檢查連線')
+
+    // return { error: "資料庫寫入失敗，請檢查連線" };
+  }
+
+  // 4. 跳轉 (一定要放在 try-catch 之外！)
   redirect("/");
-  console.log("todo", todo);
 }
 
 const PAGE_SIZE = 3;
 
 export async function getTodoList(page: number) {
-  const offset = (page - 1) * PAGE_SIZE;
+  try {
+    const offset = (page - 1) * PAGE_SIZE;
 
-  // 1. 取得資料，並加上 desc 排序
-  const todoList = await db
-    .select()
-    .from(schema.todos)
-    .orderBy(desc(schema.todos.id)) // 或者使用 schema.todos.createdAt
-    .limit(PAGE_SIZE)
-    .offset(offset);
+    // 1. 取得資料，並加上 desc 排序
+    const todoList = await db
+      .select()
+      .from(schema.todos)
+      .orderBy(desc(schema.todos.createdAt)) // 或者使用 schema.todos.createdAt
+      .limit(PAGE_SIZE)
+      .offset(offset);
 
-  // 2. 取得總筆數 (維持不變)
-  const [countResult] = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(schema.todos);
+    // 2. 取得總筆數 (維持不變)
+    const [countResult] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.todos);
 
-  const totalCount = Number(countResult.count);
-  const hasNextPage = offset + PAGE_SIZE < totalCount;
+    const totalCount = Number(countResult.count);
+    const hasNextPage = offset + PAGE_SIZE < totalCount;
 
-  return {
-    todos: todoList,
-    hasNextPage,
-  };
+    return { todos: todoList, hasNextPage, error: null };
+  } catch (error) {
+    console.error("Fetch Error:", error);
+    return { todos: [], hasNextPage: false, error: "無法取得資料" };
+  }
 }
 
 export async function deleteTodo(id: number) {
   try {
     await db.delete(schema.todos).where(eq(schema.todos.id, id));
-    
+
     // 刪除後刷新頁面數據
     revalidatePath("/");
   } catch (error) {
@@ -84,13 +87,13 @@ export async function deleteTodo(id: number) {
   }
 }
 
-
 // 1. 切換完成狀態
 export async function toggleTodo(id: number, currentStatus: boolean) {
-  await db.update(schema.todos)
+  await db
+    .update(schema.todos)
     .set({ completed: !currentStatus })
     .where(eq(schema.todos.id, id));
-  
+
   revalidatePath("/");
 }
 
@@ -99,7 +102,8 @@ export async function updateTodo(id: number, formData: FormData) {
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
 
-  await db.update(schema.todos)
+  await db
+    .update(schema.todos)
     .set({ title, description, updatedAt: new Date() })
     .where(eq(schema.todos.id, id));
 

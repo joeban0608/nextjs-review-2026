@@ -12,6 +12,7 @@ export default async function Home({
   const page = Math.max(1, Number(pageRaw ?? "1")); // 確保頁數不會小於 1
 
   const { todos, hasNextPage } = await getTodoList(page);
+  
   return (
     <section className="flex flex-col items-center justify-center min-h-screen gap-2">
       <h1 className="text-2xl font-bold">Todo List</h1>
