@@ -35,6 +35,7 @@ export default function ConfirmDeleteModal({
       closeModal();
     } catch (error) {
       alert("刪除失敗");
+      console.error(`Something wrong when delete todo: \n${JSON.stringify(error)}`)
     } finally {
       setIsDeleting(false);
     }

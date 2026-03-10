@@ -1,4 +1,4 @@
-import { addTodo, getTodoList, toggleTodo, updateTodo } from "@/app/lib/action";
+import { addTodo, getTodoList, toggleTodo } from "@/app/lib/action";
 import Link from "next/link"; // 建議換成 Link 避免全頁刷新
 import ConfirmDeleteModal from "@/app/component/ConfirmDeleteModal";
 import EditTodoModal from "@/app/component/EditTodoModal";
