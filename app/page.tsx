@@ -36,7 +36,7 @@ export default async function Home({
       <ul className="mt-2 py-2 px-4 min-w-[300px] border-2 gap-2">
         {todos.map((todo) => (
           <li key={todo.id} className="border-b last:border-0 py-2">
-            {todo.completed ? "✅" : "⬜"} - <strong>{todo.title}</strong>
+            {todo.completed ? "✅" : "📌"} - <strong>{todo.title}</strong>
             <p className="text-sm text-gray-600">{todo.description}</p>
             <span className="text-xs text-gray-400">
               {new Date(todo.updatedAt).toLocaleString()}
