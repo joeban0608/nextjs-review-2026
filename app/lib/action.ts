@@ -1,7 +1,11 @@
 "use server";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import { sql } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import z from "zod";
+import { desc } from "drizzle-orm"; // 記得匯入 desc
+import { redirect } from 'next/navigation'
 
 export async function addTodo(formData: FormData) {
   const title = formData.get("title");
@@ -35,5 +39,35 @@ export async function addTodo(formData: FormData) {
     completed: false,
   });
 
+  // 告訴 Next.js 重新驗證首頁路徑，這樣列表才會更新
+  revalidatePath("/");
+  redirect("/");
   console.log("todo", todo);
+}
+
+const PAGE_SIZE = 2;
+
+export async function getTodoList(page: number) {
+  const offset = (page - 1) * PAGE_SIZE;
+
+  // 1. 取得資料，並加上 desc 排序
+  const todoList = await db
+    .select()
+    .from(schema.todos)
+    .orderBy(desc(schema.todos.id)) // 或者使用 schema.todos.createdAt
+    .limit(PAGE_SIZE)
+    .offset(offset);
+
+  // 2. 取得總筆數 (維持不變)
+  const [countResult] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.todos);
+
+  const totalCount = Number(countResult.count);
+  const hasNextPage = offset + PAGE_SIZE < totalCount;
+
+  return {
+    todos: todoList,
+    hasNextPage,
+  };
 }
