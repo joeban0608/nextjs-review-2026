@@ -45,7 +45,7 @@ export async function addTodo(formData: FormData) {
   console.log("todo", todo);
 }
 
-const PAGE_SIZE = 2;
+const PAGE_SIZE = 4;
 
 export async function getTodoList(page: number) {
   const offset = (page - 1) * PAGE_SIZE;

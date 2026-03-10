@@ -33,7 +33,7 @@ export default async function Home({
         </button>
       </form>
 
-      <ul className="mt-4 p-4 min-w-[300px] border-2">
+      <ul className="mt-2 p-4 min-w-[300px] border-2">
         {todos.map((todo) => (
           <li key={todo.id} className="mb-2 border-b last:border-0 pb-2">
             {todo.completed ? "✅" : "⬜"} - <strong>{todo.title}</strong>
@@ -46,7 +46,7 @@ export default async function Home({
       </ul>
 
       {/* Pagination: 使用 Link 以獲得更好的效能 */}
-      <div className="flex gap-4 items-center mt-6">
+      <div className="flex gap-4 items-center mt-2">
         {/* Prev 按鈕 */}
         {page > 1 ? (
           <Link href={`/?page=${page - 1}`} className="border px-4 py-1">
