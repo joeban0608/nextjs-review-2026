@@ -1,4 +1,10 @@
-import { addTodo, deleteTodo, getTodoList } from "@/app/lib/action";
+import {
+  addTodo,
+  deleteTodo,
+  getTodoList,
+  toggleTodo,
+  updateTodo,
+} from "@/app/lib/action";
 import Link from "next/link"; // 建議換成 Link 避免全頁刷新
 
 export default async function Home({
@@ -33,29 +39,92 @@ export default async function Home({
         </button>
       </form>
 
-      <ul className="mt-2 py-2 px-4 min-w-[300px] border-2 gap-2">
+      <ul className="mt-2 py-2 px-4 min-w-[400px] border-2 gap-2">
         {todos.map((todo) => (
-          <li key={todo.id} className="border-b last:border-0 py-2">
-            {todo.completed ? "✅" : "📌"} - <strong>{todo.title}</strong>
-            <p className="text-sm text-gray-600">{todo.description}</p>
-            <span className="text-xs text-gray-400">
-              {new Date(todo.updatedAt).toLocaleString()}
-            </span>
-            {/* 刪除表單 */}
-            <form
-              className="mt-2"
-              action={async () => {
-                "use server"; // 在 Next.js 16 中，可以直接在 action 內定義或引用
-                await deleteTodo(todo.id);
-              }}
-            >
-              <button
-                type="submit"
-                className="text-red-500 hover:text-red-700 text-sm border border-red-200 px-2 py-1 rounded"
+          <li key={todo.id} className="border-b last:border-0 py-4">
+            <div className="flex items-start justify-between">
+              <div className="flex gap-3">
+                {/* 1. Toggle 按鈕：點擊圖示切換狀態 */}
+                <form action={toggleTodo.bind(null, todo.id, !!todo.completed)}>
+                  <button
+                    type="submit"
+                    className="text-xl hover:scale-110 transition cursor-pointer"
+                  >
+                    {todo.completed ? "✅" : "📌"}
+                  </button>
+                </form>
+
+                <div
+                  className={todo.completed ? "line-through text-gray-400" : ""}
+                >
+                  <strong className="block text-lg">{todo.title}</strong>
+                  <p className="text-sm">{todo.description}</p>
+                </div>
+              </div>
+
+              {/* 刪除按鈕 */}
+              <form action={deleteTodo.bind(null, todo.id)}>
+                <button
+                  type="submit"
+                  className="text-red-400 hover:text-red-600 text-xs border border-red-100 px-2 py-1 rounded"
+                >
+                  Delete
+                </button>
+              </form>
+            </div>
+
+            {/* 2. Edit 功能：使用 <details> 製作簡易編輯區 */}
+            <details className="mt-3 group">
+              <summary className="text-[11px] text-gray-400 cursor-pointer hover:text-blue-500 list-none flex items-center gap-1 transition-colors">
+                <span className="group-open:rotate-90 transition-transform">
+                  ▶
+                </span>
+                Edit Task
+              </summary>
+
+              <form
+                action={updateTodo.bind(null, todo.id)}
+                className="flex flex-col gap-3 mt-2 p-3 bg-slate-100/80 rounded-lg border border-slate-200 shadow-inner text-black"
               >
-                Delete
-              </button>
-            </form>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase px-1">
+                    Title
+                  </label>
+                  <input
+                    name="title"
+                    defaultValue={todo.title}
+                    className="border border-slate-300 p-2 text-sm rounded bg-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    placeholder="New title"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase px-1">
+                    Description
+                  </label>
+                  <textarea
+                    name="description"
+                    defaultValue={todo.description ?? ""}
+                    className="border border-slate-300 p-2 text-sm rounded bg-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all min-h-[60px]"
+                    placeholder="New description"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  {/* 讓按鈕不要佔滿整個寬度，看起來比較精緻 */}
+                  <button
+                    type="submit"
+                    className="bg-slate-800 hover:bg-black text-white text-xs font-medium px-4 py-2 rounded-md transition-colors shadow-sm"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </details>
+
+            <div className="mt-2 text-[10px] text-gray-400">
+              Last updated: {new Date(todo.updatedAt).toLocaleString()}
+            </div>
           </li>
         ))}
       </ul>

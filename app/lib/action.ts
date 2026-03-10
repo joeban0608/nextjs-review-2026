@@ -83,3 +83,25 @@ export async function deleteTodo(id: number) {
     throw new Error("Failed to delete todo");
   }
 }
+
+
+// 1. 切換完成狀態
+export async function toggleTodo(id: number, currentStatus: boolean) {
+  await db.update(schema.todos)
+    .set({ completed: !currentStatus })
+    .where(eq(schema.todos.id, id));
+  
+  revalidatePath("/");
+}
+
+// 2. 更新文字內容
+export async function updateTodo(id: number, formData: FormData) {
+  const title = formData.get("title") as string;
+  const description = formData.get("description") as string;
+
+  await db.update(schema.todos)
+    .set({ title, description, updatedAt: new Date() })
+    .where(eq(schema.todos.id, id));
+
+  revalidatePath("/");
+}
